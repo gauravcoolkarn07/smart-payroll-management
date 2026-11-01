@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Portal | Smart Payroll</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <header class="topbar">
+        <div>
+            <h1>Smart Payroll</h1>
+            <small style="color: #cbd5e1;">Employee Self-Service Portal</small>
+        </div>
+
+        <div class="user-info">
+            <span>Welcome, {{ session["username"] }}</span>
+            <form method="POST" action="{{ url_for('logout') }}">
+                <button type="submit" class="logout-button">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+
+        <section style="margin-bottom: 30px;">
+            <p style="color: #3157d5; font-weight: 700; margin-bottom: 6px;">
+                EMPLOYEE WORKSPACE
+            </p>
+            <h2 style="font-size: 30px; margin-bottom: 8px;">
+                Hello, {{ employee["full_name"] }}!
+            </h2>
+            <p style="color: #64748b; margin-top: 0;">
+                Welcome to your personal payroll and employee services dashboard.
+            </p>
+        </section>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="message {{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h2 style="font-size: 21px;">My Profile</h2>
+
+        <section class="profile-card">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #edf2ff; color: #3157d5; font-size: 25px;">
+                    👤
+                </div>
+                <div>
+                    <h3 style="margin: 0 0 4px;">{{ employee["full_name"] }}</h3>
+                    <span style="color: #64748b; font-size: 13px;">
+                        {{ employee["designation"] or "Employee" }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="profile-row">
+                <span>Employee Code</span>
+                <strong>{{ employee["employee_code"] }}</strong>
+            </div>
+
+            <div class="profile-row">
+                <span>Full Name</span>
+                <strong>{{ employee["full_name"] }}</strong>
+            </div>
+
+            <div class="profile-row">
+                <span>Department</span>
+                <strong>{{ employee["department"] or "Not assigned" }}</strong>
+            </div>
+
+            <div class="profile-row">
+                <span>Designation</span>
+                <strong>{{ employee["designation"] or "Not assigned" }}</strong>
+            </div>
+
+            <div class="profile-row">
+                <span>Basic Salary</span>
+                <strong>₹{{ "%.2f"|format(employee["basic_salary"]) }}</strong>
+            </div>
+        </section>
+
+        <section style="margin-top: 38px;">
+            <h2 style="font-size: 22px; margin-bottom: 8px;">My Services</h2>
+            <p style="color: #64748b; margin-top: 0;">
+                Access your tasks, leave applications, performance records, and salary history.
+            </p>
+
+            <div class="module-grid">
+
+                <a href="{{ url_for('employee_tasks') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">✓</div>
+                    <h3>My Tasks</h3>
+                    <p>View assigned work, check deadlines, and update task progress.</p>
+                    <span class="module-status">View My Tasks →</span>
+                </a>
+
+                <a href="{{ url_for('employee_leave') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📅</div>
+                    <h3>Leave Requests</h3>
+                    <p>Apply for leave and check the status of your applications.</p>
+                    <span class="module-status">Apply for Leave →</span>
+                </a>
+
+                <a href="{{ url_for('employee_performance') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📈</div>
+                    <h3>My Performance</h3>
+                    <p>Review your performance scores, grades, and bonus details.</p>
+                    <span class="module-status">View Performance →</span>
+                </a>
+
+                <a href="{{ url_for('employee_salary_history') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">💰</div>
+                    <h3>My Salary History</h3>
+                    <p>Review monthly salary records, deductions, bonuses, and payment status.</p>
+                    <span class="module-status">View Salary History →</span>
+                </a>
+
+            </div>
+        </section>
+
+        <footer style="text-align: center; color: #64748b; font-size: 13px; padding: 30px 0 10px;">
+            Smart Payroll Management System
+        </footer>
+
+    </main>
+
+</body>
+</html>

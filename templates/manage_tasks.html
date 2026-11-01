@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management | Smart Payroll</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .page-heading {
+            margin-bottom: 24px;
+        }
+
+        .page-heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .section-card {
+            background: var(--surface);
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            color: var(--muted);
+            margin-bottom: 22px;
+        }
+
+        .task-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field label {
+            font-weight: 600;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-submit {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .table-heading h2 {
+            margin: 0;
+        }
+
+        .record-count {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .task-title {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .task-description {
+            color: var(--muted);
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-state {
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--muted);
+            background: var(--background);
+            border-radius: var(--radius);
+        }
+
+        @media (max-width: 600px) {
+            .task-form {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width,
+            .form-submit {
+                grid-column: auto;
+            }
+
+            .section-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container dashboard-container">
+
+    <a class="back-link"
+       href="{{ url_for('admin_dashboard') }}">
+        ← Back to Admin Dashboard
+    </a>
+
+    <div class="page-heading">
+        <h1>Task Management</h1>
+        <p>Assign work to employees and track task progress.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="section-card">
+        <h2 class="section-title">Assign a New Task</h2>
+        <p class="section-description">
+            Choose an employee, provide task details and set the deadline.
+        </p>
+
+        <form method="POST" class="task-form">
+
+            <div class="form-field full-width">
+                <label for="employee_id">Select Employee *</label>
+                <select id="employee_id" name="employee_id" required>
+                    <option value="">-- Select Employee --</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">
+                            {{ employee.employee_code }} - {{ employee.full_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field full-width">
+                <label for="title">Task Title *</label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Enter task title"
+                    required
+                >
+            </div>
+
+            <div class="form-field full-width">
+                <label for="description">Description</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="3"
+                    placeholder="Describe the task and expected outcome"
+                ></textarea>
+            </div>
+
+            <div class="form-field">
+                <label for="assigned_date">Assigned Date *</label>
+                <input
+                    type="date"
+                    id="assigned_date"
+                    name="assigned_date"
+                    required
+                >
+            </div>
+
+            <div class="form-field">
+                <label for="deadline">Deadline (optional)</label>
+                <input
+                    type="date"
+                    id="deadline"
+                    name="deadline"
+                >
+            </div>
+
+            <div class="form-submit">
+                <button type="submit">Assign Task</button>
+            </div>
+
+        </form>
+    </section>
+
+    <section class="section-card">
+        <div class="table-heading">
+            <div>
+                <h2>Assigned Tasks</h2>
+                <p class="section-description">
+                    Review assigned tasks and their current statuses.
+                </p>
+            </div>
+
+            <span class="record-count">
+                {{ tasks|length }} task(s)
+            </span>
+        </div>
+
+        {% if tasks %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Task Details</th>
+                            <th>Assigned Date</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for task in tasks %}
+                            <tr>
+                                <td>
+                                    <strong>{{ task.full_name }}</strong>
+                                    <br>
+                                    <span class="record-count">
+                                        {{ task.employee_code }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <strong class="task-title">
+                                        {{ task.title }}
+                                    </strong>
+                                    <div class="task-description">
+                                        {{ task.description or "No description provided." }}
+                                    </div>
+                                </td>
+
+                                <td>{{ task.assigned_date }}</td>
+
+                                <td>{{ task.deadline or "Not set" }}</td>
+
+                                <td>
+                                    <span class="status-badge {% if task.status == 'Completed' %}status-completed{% elif task.status == 'Pending' %}status-pending{% endif %}">
+                                        {{ task.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No tasks assigned yet</h3>
+                <p>Use the form above to assign the first employee task.</p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+</body>
+</html>

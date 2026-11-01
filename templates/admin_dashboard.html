@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Smart Payroll</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <header class="topbar">
+        <div>
+            <h1>Smart Payroll</h1>
+            <small style="color: #cbd5e1;">Administration Portal</small>
+        </div>
+
+        <div class="user-info">
+            <span>Welcome, {{ session["username"] }}</span>
+            <form method="POST" action="{{ url_for('logout') }}">
+                <button type="submit" class="logout-button">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+
+        <section class="dashboard-heading">
+            <div>
+                <p style="color: #3157d5; font-weight: 700; margin-bottom: 6px;">
+                    ADMINISTRATION
+                </p>
+                <h2 style="font-size: 30px; margin-bottom: 8px;">
+                    Admin Dashboard
+                </h2>
+                <p style="color: #64748b; margin-top: 0;">
+                    Manage your employees, attendance, performance and payroll in one place.
+                </p>
+            </div>
+        </section>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="message {{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h2 style="font-size: 20px; margin-top: 30px;">
+            Organization Overview
+        </h2>
+
+
+<!-- Organization Overview -->
+<section class="dashboard-section">
+    <h2>Organization Overview</h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Employees</h3>
+            <p class="stat-number">{{ employee_count }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Total Tasks</h3>
+            <p class="stat-number">{{ task_count }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Pending Tasks</h3>
+            <p class="stat-number">{{ pending_tasks }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Pending Leave Requests</h3>
+            <p class="stat-number">{{ pending_leaves }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Monthly Payroll</h3>
+            <p class="stat-number">
+                ₹{{ "%.2f"|format(monthly_payroll) }}
+            </p>
+            <small>{{ current_month }}</small>
+        </div>
+
+        <div class="stat-card">
+            <h3>Payroll Records</h3>
+            <p class="stat-number">{{ payroll_record_count }}</p>
+            <small>{{ current_month }}</small>
+        </div>
+
+        <div class="stat-card">
+            <h3>Pending Payments</h3>
+            <p class="stat-number">{{ pending_payments }}</p>
+            <small>{{ current_month }}</small>
+        </div>
+    </div>
+</section>
+
+
+        <section style="margin-top: 38px;">
+            <h2 style="font-size: 22px; margin-bottom: 8px;">
+                Management Modules
+            </h2>
+            <p style="color: #64748b; margin-top: 0;">
+                Select a module to manage your organization's operations.
+            </p>
+
+            <div class="module-grid">
+
+                <a href="{{ url_for('manage_employees') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">👥</div>
+                    <h3>Employee Management</h3>
+                    <p>Add employees, create login accounts, and update employee records.</p>
+                    <span class="module-status">Manage Employees →</span>
+                </a>
+
+                <a href="{{ url_for('manage_attendance') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📅</div>
+                    <h3>Attendance Management</h3>
+                    <p>Record daily attendance and maintain employee attendance details.</p>
+                    <span class="module-status">Manage Attendance →</span>
+                </a>
+
+                <a href="{{ url_for('manage_leaves') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📝</div>
+                    <h3>Leave Management</h3>
+                    <p>Review employee leave applications and approve or reject requests.</p>
+                    <span class="module-status">Review Requests →</span>
+                </a>
+
+                <a href="{{ url_for('manage_tasks') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">✓</div>
+                    <h3>Task Management</h3>
+                    <p>Assign work, set deadlines, and monitor task completion.</p>
+                    <span class="module-status">Manage Tasks →</span>
+                </a>
+
+                <a href="{{ url_for('manage_performance') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📈</div>
+                    <h3>Performance Management</h3>
+                    <p>Evaluate employee scores and review performance-based bonuses.</p>
+                    <span class="module-status">View Performance →</span>
+                </a>
+
+                <a href="{{ url_for('manage_payroll') }}"
+                   class="module-card"
+                   style="display: block; color: inherit; text-decoration: none;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">💰</div>
+                    <h3>Payroll Management</h3>
+                    <p>Generate monthly salaries, calculate deductions, and update payment status.</p>
+                    <span class="module-status">Manage Payroll →</span>
+                </a>
+
+            </div>
+        </section>
+
+        <footer style="text-align: center; color: #64748b; font-size: 13px; padding: 30px 0 10px;">
+            Smart Payroll Management System
+        </footer>
+
+    </main>
+
+</body>
+</html>

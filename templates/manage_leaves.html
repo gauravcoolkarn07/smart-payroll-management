@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management | Smart Payroll</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .page-heading {
+            margin-bottom: 24px;
+        }
+
+        .page-heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .section-card {
+            background: var(--surface);
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-description {
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .table-heading h2 {
+            margin: 0;
+        }
+
+        .record-count {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            white-space: nowrap;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .leave-comment {
+            min-width: 150px;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .approve-button {
+            background: #15803d;
+        }
+
+        .approve-button:hover {
+            background: #166534;
+        }
+
+        .reject-button {
+            background: #b91c1c;
+        }
+
+        .reject-button:hover {
+            background: #991b1b;
+        }
+
+        .decision-text {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .empty-state {
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--muted);
+            background: var(--background);
+            border-radius: var(--radius);
+        }
+
+        @media (max-width: 600px) {
+            .section-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container dashboard-container">
+
+        <a class="back-link"
+           href="{{ url_for('admin_dashboard') }}">
+            ← Back to Admin Dashboard
+        </a>
+
+        <div class="page-heading">
+            <h1>Leave Management</h1>
+            <p>Review employee leave requests and manage approval decisions.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="section-card">
+            <div class="table-heading">
+                <div>
+                    <h2>Employee Leave Requests</h2>
+                    <p class="section-description">
+                        Approve or reject pending requests and add an optional comment.
+                    </p>
+                </div>
+
+                <span class="record-count">
+                    {{ requests|length }} request(s)
+                </span>
+            </div>
+
+            {% if requests %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Dates</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Admin Comment</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in requests %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ item.full_name }}</strong>
+                                        <br>
+                                        <span class="record-count">
+                                            {{ item.employee_code }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ item.start_date }}
+                                        <br>
+                                        <span class="record-count">to</span>
+                                        <br>
+                                        {{ item.end_date }}
+                                    </td>
+
+                                    <td>{{ item.reason }}</td>
+
+                                    <td>
+                                        <span class="status-badge {% if item.status == 'Approved' %}status-approved{% elif item.status == 'Rejected' %}status-rejected{% else %}status-pending{% endif %}">
+                                            {{ item.status }}
+                                        </span>
+                                    </td>
+
+                                    <td>{{ item.admin_comment or "-" }}</td>
+
+                                    <td>
+                                        {% if item.status == "Pending" %}
+                                            <form method="POST">
+                                                <input
+                                                    type="hidden"
+                                                    name="leave_id"
+                                                    value="{{ item.id }}"
+                                                >
+
+                                                <input
+                                                    class="leave-comment"
+                                                    type="text"
+                                                    name="admin_comment"
+                                                    placeholder="Optional comment"
+                                                    aria-label="Admin comment"
+                                                >
+
+                                                <div class="action-buttons">
+                                                    <button
+                                                        type="submit"
+                                                        name="status"
+                                                        value="Approved"
+                                                        class="approve-button"
+                                                    >
+                                                        Approve
+                                                    </button>
+
+                                                    <button
+                                                        type="submit"
+                                                        name="status"
+                                                        value="Rejected"
+                                                        class="reject-button"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        {% else %}
+                                            <span class="decision-text">
+                                                Decision recorded
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No leave requests yet</h3>
+                    <p>Employee leave applications will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+
+    </div>
+</body>
+</html>

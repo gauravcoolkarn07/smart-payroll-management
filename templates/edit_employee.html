@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Employee</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Employee Details</h1>
+
+        <p>
+            <a href="{{ url_for('manage_employees') }}">
+                Back to Employee Management
+            </a>
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <label>Employee Code</label>
+            <input type="text" name="employee_code"
+                   value="{{ employee.employee_code }}" required>
+
+            <label>Full Name</label>
+            <input type="text" name="full_name"
+                   value="{{ employee.full_name }}" required>
+
+            <label>Department</label>
+            <input type="text" name="department"
+                   value="{{ employee.department }}" required>
+
+            <label>Designation</label>
+            <input type="text" name="designation"
+                   value="{{ employee.designation }}" required>
+
+            <label>Basic Salary</label>
+            <input type="number" name="basic_salary"
+                   value="{{ employee.basic_salary }}"
+                   min="0" step="0.01" required>
+
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+</body>
+</html>

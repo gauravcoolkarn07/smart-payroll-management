@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Salary History | Payroll Management</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .salary-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            color: var(--navy);
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .salary-intro {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 22px;
+            margin-bottom: 25px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .salary-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            background: var(--primary-light);
+            font-size: 27px;
+        }
+
+        .salary-intro h2 {
+            color: var(--navy);
+            font-size: 18px;
+            margin: 0 0 6px;
+        }
+
+        .salary-intro p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .records-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .records-header {
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .records-header h2 {
+            color: var(--navy);
+            font-size: 20px;
+            margin: 0 0 6px;
+        }
+
+        .records-header p {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .salary-table th {
+            background: var(--background);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .salary-table th,
+        .salary-table td {
+            padding: 16px 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .salary-table td {
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .salary-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .salary-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .month-value {
+            color: var(--navy);
+            font-weight: 700;
+        }
+
+        .money {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .net-salary {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .deduction {
+            color: var(--danger);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-paid {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-finalized {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-pending {
+            background: #fff4d6;
+            color: #946200;
+        }
+
+        .status-other {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            background: var(--surface);
+        }
+
+        .empty-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: var(--navy);
+            margin: 0 0 8px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .table-note {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .salary-download-btn {
+    display: inline-block;
+    padding: 9px 12px;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.salary-download-btn:hover {
+    background: var(--primary-dark);
+}
+
+        @media (max-width: 600px) {
+            .salary-page {
+                padding: 20px 12px;
+            }
+
+            .page-header h1 {
+                font-size: 25px;
+            }
+
+            .salary-intro {
+                align-items: flex-start;
+                padding: 17px;
+            }
+
+            .records-header {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="salary-page">
+
+    <a class="back-link" href="{{ url_for('employee_dashboard') }}">
+        &#8592; Back to Employee Dashboard
+    </a>
+
+    <div class="page-header">
+        <h1>My Salary History</h1>
+        <p>Review your monthly salary breakdown and payroll payment status.</p>
+    </div>
+
+    <div class="salary-intro">
+        <div class="salary-icon">&#128176;</div>
+        <div>
+            <h2>Your Salary Overview</h2>
+            <p>
+                View your basic salary, bonuses, deductions, and net salary
+                for each payroll period.
+            </p>
+        </div>
+    </div>
+
+    <section class="records-card">
+        <div class="records-header">
+            <h2>Monthly Payroll Records</h2>
+            <p>Your available salary statements and payment details.</p>
+        </div>
+
+        {% if payroll_records %}
+            <div class="table-container">
+                <table class="salary-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Basic Salary</th>
+                            <th>Bonus</th>
+                            <th>Tax Deduction</th>
+                            <th>Leave Deduction</th>
+                            <th>Other Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Salary Slip</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in payroll_records %}
+                            <tr>
+                                <td class="month-value">{{ record.month }}</td>
+
+                                <td class="money">
+                                    ₹{{ "%.2f"|format(record.basic_salary) }}
+                                </td>
+
+                                <td class="money">
+                                    ₹{{ "%.2f"|format(record.bonus) }}
+                                </td>
+
+                                <td class="money deduction">
+                                    ₹{{ "%.2f"|format(record.tax_deduction) }}
+                                </td>
+
+                                <td class="money deduction">
+                                    ₹{{ "%.2f"|format(record.leave_deduction) }}
+                                </td>
+
+                                <td class="money deduction">
+                                    ₹{{ "%.2f"|format(record.other_deductions) }}
+                                </td>
+
+                                <td class="money net-salary">
+                                    ₹{{ "%.2f"|format(record.net_salary) }}
+                                </td>
+
+                                <td>
+                                    {% if record.status == 'Paid' %}
+                                        <span class="status-badge status-paid">Paid</span>
+                                    {% elif record.status == 'Finalized' %}
+                                        <span class="status-badge status-finalized">Finalized</span>
+                                    {% elif record.status == 'Pending' %}
+                                        <span class="status-badge status-pending">Pending</span>
+                                    {% else %}
+                                        <span class="status-badge status-other">
+                                            {{ record.status }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+    <a
+        href="{{ url_for('download_salary_slip', payroll_id=record.id) }}"
+        class="salary-download-btn"
+    >
+        Download PDF
+    </a>
+</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-note">
+                Net salary and deduction amounts are displayed as recorded
+                in your payroll records. Contact your administrator if you
+                have questions about a salary entry.
+            </div>
+
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">&#128203;</div>
+                <h3>No Salary Records Yet</h3>
+                <p>
+                    Your salary history will appear here once payroll records
+                    have been created for you.
+                </p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+</body>
+</html>

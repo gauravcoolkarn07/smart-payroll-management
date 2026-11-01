@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Leave Requests | Payroll Management</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .leave-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .page-heading h1 {
+            color: var(--navy);
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .leave-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .leave-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        .leave-card h2 {
+            color: var(--navy);
+            font-size: 20px;
+            margin: 0 0 8px;
+        }
+
+        .card-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 22px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: 2px solid var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .submit-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .history-card {
+            margin-top: 28px;
+        }
+
+        .history-header {
+            margin-bottom: 18px;
+        }
+
+        .history-header h2 {
+            margin-bottom: 6px;
+        }
+
+        .history-header p {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .leave-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .leave-table th {
+            background: var(--background);
+            color: var(--muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .leave-table th,
+        .leave-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .leave-table td {
+            color: var(--text);
+            overflow-wrap: anywhere;
+        }
+
+        .leave-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .leave-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-pending {
+            background: #fff4d6;
+            color: #946200;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-other {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .flash-message {
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .flash-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-message.error,
+        .flash-message.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-message.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .flash-message.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 35px 20px;
+            background: var(--background);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+        }
+
+        .empty-icon {
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state h3 {
+            color: var(--navy);
+            margin: 0 0 8px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            margin: 0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 800px) {
+            .leave-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .leave-page {
+                padding: 20px 12px;
+            }
+
+            .page-heading h1 {
+                font-size: 25px;
+            }
+
+            .leave-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="leave-page">
+
+    <a class="back-link" href="{{ url_for('employee_dashboard') }}">
+        &#8592; Back to Employee Dashboard
+    </a>
+
+    <div class="page-heading">
+        <h1>My Leave Requests</h1>
+        <p>Apply for leave and track the status of your requests.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash-message {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="leave-layout">
+
+        <section class="leave-card">
+            <h2>Apply for Leave</h2>
+            <p class="card-description">
+                Fill in the dates and reason for your leave request.
+            </p>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reason">Reason for Leave</label>
+                    <textarea
+                        id="reason"
+                        name="reason"
+                        rows="4"
+                        placeholder="Explain why you need leave..."
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="submit-button">
+                    Submit Leave Request
+                </button>
+            </form>
+        </section>
+
+        <section class="leave-card">
+            <div class="history-header">
+                <h2>My Leave History</h2>
+                <p>Review your previous and current leave requests.</p>
+            </div>
+
+            {% if requests %}
+                <div class="table-container">
+                    <table class="leave-table">
+                        <thead>
+                            <tr>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Admin Comment</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in requests %}
+                                <tr>
+                                    <td>{{ item.start_date }}</td>
+                                    <td>{{ item.end_date }}</td>
+                                    <td>{{ item.reason }}</td>
+
+                                    <td>
+                                        {% if item.status == 'Pending' %}
+                                            <span class="status-badge status-pending">
+                                                Pending
+                                            </span>
+                                        {% elif item.status == 'Approved' %}
+                                            <span class="status-badge status-approved">
+                                                Approved
+                                            </span>
+                                        {% elif item.status == 'Rejected' %}
+                                            <span class="status-badge status-rejected">
+                                                Rejected
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge status-other">
+                                                {{ item.status }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ item.admin_comment or "-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">&#128197;</div>
+                    <h3>No Leave Requests Yet</h3>
+                    <p>Your submitted leave requests will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+
+    </div>
+</div>
+</body>
+</html>

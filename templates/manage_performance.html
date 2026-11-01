@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Management | Smart Payroll</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .page-heading {
+            margin-bottom: 24px;
+        }
+
+        .page-heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .section-card {
+            background: var(--surface);
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            color: var(--muted);
+            margin-bottom: 22px;
+        }
+
+        .performance-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field label {
+            font-weight: 600;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-submit {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+
+        .score-note {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .table-heading h2 {
+            margin: 0;
+        }
+
+        .record-count {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .bonus-value {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--muted);
+            background: var(--background);
+            border-radius: var(--radius);
+        }
+
+        @media (max-width: 600px) {
+            .performance-form {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width,
+            .form-submit {
+                grid-column: auto;
+            }
+
+            .section-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container dashboard-container">
+
+    <a class="back-link"
+       href="{{ url_for('admin_dashboard') }}">
+        ← Back to Admin Dashboard
+    </a>
+
+    <div class="page-heading">
+        <h1>Performance Management</h1>
+        <p>Evaluate employee performance and review calculated bonuses.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="section-card">
+        <h2 class="section-title">Evaluate Employee Performance</h2>
+        <p class="section-description">
+            Enter scores for attendance, task completion and punctuality.
+            Each score must be between 0 and 100.
+        </p>
+
+        <form method="POST" class="performance-form">
+
+            <div class="form-field full-width">
+                <label for="employee_id">Employee *</label>
+                <select name="employee_id" id="employee_id" required>
+                    <option value="">-- Select Employee --</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">
+                            {{ employee.employee_code }} - {{ employee.full_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field full-width">
+                <label for="month">Evaluation Month *</label>
+                <input type="month" name="month" id="month" required>
+            </div>
+
+            <div class="form-field">
+                <label for="attendance_score">Attendance Score *</label>
+                <input
+                    type="number"
+                    name="attendance_score"
+                    id="attendance_score"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="0–100"
+                    required
+                >
+                <span class="score-note">Enter a score from 0 to 100.</span>
+            </div>
+
+            <div class="form-field">
+                <label for="task_score">Task Score *</label>
+                <input
+                    type="number"
+                    name="task_score"
+                    id="task_score"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="0–100"
+                    required
+                >
+                <span class="score-note">Based on task performance.</span>
+            </div>
+
+            <div class="form-field">
+                <label for="punctuality_score">Punctuality Score *</label>
+                <input
+                    type="number"
+                    name="punctuality_score"
+                    id="punctuality_score"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="0–100"
+                    required
+                >
+                <span class="score-note">Based on punctuality.</span>
+            </div>
+
+            <div class="form-submit">
+                <button type="submit">Calculate &amp; Save Evaluation</button>
+            </div>
+
+        </form>
+    </section>
+
+    <section class="section-card">
+        <div class="table-heading">
+            <div>
+                <h2>Performance Records</h2>
+                <p class="section-description">
+                    Review employee scores, grades and calculated bonuses.
+                </p>
+            </div>
+
+            <span class="record-count">
+                {{ evaluations|length }} evaluation(s)
+            </span>
+        </div>
+
+        {% if evaluations %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Month</th>
+                            <th>Attendance</th>
+                            <th>Tasks</th>
+                            <th>Punctuality</th>
+                            <th>Total Score</th>
+                            <th>Grade</th>
+                            <th>Bonus</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in evaluations %}
+                            <tr>
+                                <td>
+                                    <strong>{{ record.full_name }}</strong>
+                                    <br>
+                                    <span class="record-count">
+                                        {{ record.employee_code }}
+                                    </span>
+                                </td>
+
+                                <td>{{ record.month }}</td>
+                                <td>{{ record.attendance_score }}</td>
+                                <td>{{ record.task_score }}</td>
+                                <td>{{ record.punctuality_score }}</td>
+
+                                <td>
+                                    <strong>{{ record.total_score }}</strong>
+                                </td>
+
+                                <td>
+                                    <span class="score-badge">
+                                        {{ record.grade }}
+                                    </span>
+                                </td>
+
+                                <td class="bonus-value">
+                                    ₹{{ "%.2f"|format(record.bonus) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No performance evaluations yet</h3>
+                <p>Complete an evaluation using the form above to see records here.</p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+</body>
+</html>

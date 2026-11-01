@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Performance | Payroll Management</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .performance-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            color: var(--navy);
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .intro-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 22px;
+            margin-bottom: 25px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .intro-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            background: var(--primary-light);
+            font-size: 26px;
+        }
+
+        .intro-card h2 {
+            color: var(--navy);
+            font-size: 18px;
+            margin: 0 0 6px;
+        }
+
+        .intro-card p {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .records-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .records-header {
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .records-header h2 {
+            color: var(--navy);
+            font-size: 20px;
+            margin: 0 0 6px;
+        }
+
+        .records-header p {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .performance-table th {
+            background: var(--background);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        .performance-table th,
+        .performance-table td {
+            padding: 16px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .performance-table td {
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .performance-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .performance-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .score-value {
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .grade-badge {
+            display: inline-block;
+            min-width: 32px;
+            text-align: center;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .bonus-value {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            background: var(--surface);
+        }
+
+        .empty-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: var(--navy);
+            margin: 0 0 8px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .performance-page {
+                padding: 20px 12px;
+            }
+
+            .page-header h1 {
+                font-size: 25px;
+            }
+
+            .intro-card {
+                align-items: flex-start;
+                padding: 17px;
+            }
+
+            .records-header {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="performance-page">
+
+    <a class="back-link" href="{{ url_for('employee_dashboard') }}">
+        &#8592; Back to Employee Dashboard
+    </a>
+
+    <div class="page-header">
+        <h1>My Performance</h1>
+        <p>Review your monthly performance scores, grades, and bonus details.</p>
+    </div>
+
+    <div class="intro-card">
+        <div class="intro-icon">&#127942;</div>
+        <div>
+            <h2>Your Performance Overview</h2>
+            <p>
+                Track your attendance, task completion, and punctuality scores.
+                Your evaluation and bonus details are displayed below.
+            </p>
+        </div>
+    </div>
+
+    <section class="records-card">
+        <div class="records-header">
+            <h2>Monthly Evaluation History</h2>
+            <p>Your recorded performance evaluations.</p>
+        </div>
+
+        {% if records %}
+            <div class="table-container">
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Attendance</th>
+                            <th>Tasks</th>
+                            <th>Punctuality</th>
+                            <th>Total Score</th>
+                            <th>Grade</th>
+                            <th>Bonus</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td>{{ record.month }}</td>
+                                <td>{{ record.attendance_score }}</td>
+                                <td>{{ record.task_score }}</td>
+                                <td>{{ record.punctuality_score }}</td>
+                                <td class="score-value">{{ record.total_score }}</td>
+                                <td>
+                                    <span class="grade-badge">
+                                        {{ record.grade }}
+                                    </span>
+                                </td>
+                                <td class="bonus-value">
+                                    ₹{{ "%.2f"|format(record.bonus) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">&#128202;</div>
+                <h3>No Performance Records Yet</h3>
+                <p>
+                    Your monthly evaluations will appear here once your
+                    administrator records your performance.
+                </p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+</body>
+</html>

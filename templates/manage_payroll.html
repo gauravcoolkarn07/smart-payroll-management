@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Management | Smart Payroll</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .page-heading {
+            margin-bottom: 24px;
+        }
+
+        .page-heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .section-card {
+            background: var(--surface);
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            color: var(--muted);
+            margin-bottom: 22px;
+        }
+
+        .payroll-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field label {
+            font-weight: 600;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-submit {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .table-heading h2 {
+            margin: 0;
+        }
+
+        .record-count {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .salary-value {
+            white-space: nowrap;
+        }
+
+        .net-salary {
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .status-draft {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-finalized {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-paid {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-form {
+            margin: 0;
+        }
+
+        .status-form button {
+            margin-top: 6px;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--muted);
+            background: var(--background);
+            border-radius: var(--radius);
+        }
+
+        @media (max-width: 600px) {
+            .payroll-form {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width,
+            .form-submit {
+                grid-column: auto;
+            }
+
+            .section-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container dashboard-container">
+
+    <a class="back-link"
+       href="{{ url_for('admin_dashboard') }}">
+        ← Back to Admin Dashboard
+    </a>
+
+    <div class="page-heading">
+        <h1>Payroll Management</h1>
+        <p>Generate monthly salaries, review deductions and manage payment status.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="section-card">
+        <h2 class="section-title">Generate Monthly Payroll</h2>
+        <p class="section-description">
+            Select an employee and payroll month, then enter any additional deductions.
+        </p>
+
+        <form method="POST" class="payroll-form">
+
+            <div class="form-field full-width">
+                <label for="employee_id">Select Employee *</label>
+                <select name="employee_id" id="employee_id" required>
+                    <option value="">-- Select Employee --</option>
+
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">
+                            {{ employee.employee_code }} -
+                            {{ employee.full_name }}
+                            (₹{{ "%.2f"|format(employee.basic_salary) }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label for="month">Payroll Month *</label>
+                <input type="month" name="month" id="month" required>
+            </div>
+
+            <div class="form-field">
+                <label for="other_deductions">Other Deductions (₹)</label>
+                <input
+                    type="number"
+                    name="other_deductions"
+                    id="other_deductions"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                    required
+                >
+            </div>
+
+            <div class="form-submit">
+                <button type="submit">Generate Payroll</button>
+            </div>
+
+        </form>
+    </section>
+
+    <section class="section-card">
+        <div class="table-heading">
+            <div>
+                <h2>Payroll Records</h2>
+                <p class="section-description">
+                    Review salary breakdowns and progress each payroll record through its payment status.
+                </p>
+            </div>
+
+            <span class="record-count">
+                {{ payroll_records|length }} record(s)
+            </span>
+        </div>
+
+        {% if payroll_records %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Month</th>
+                            <th>Basic Salary</th>
+                            <th>Bonus</th>
+                            <th>Tax</th>
+                            <th>Leave Deduction</th>
+                            <th>Other Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Status / Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in payroll_records %}
+                            <tr>
+                                <td>
+                                    <strong>{{ record.full_name }}</strong>
+                                    <br>
+                                    <span class="record-count">
+                                        {{ record.employee_code }}
+                                    </span>
+                                </td>
+
+                                <td>{{ record.month }}</td>
+
+                                <td class="salary-value">
+                                    ₹{{ "%.2f"|format(record.basic_salary) }}
+                                </td>
+
+                                <td class="salary-value">
+                                    ₹{{ "%.2f"|format(record.bonus) }}
+                                </td>
+
+                                <td class="salary-value">
+                                    ₹{{ "%.2f"|format(record.tax_deduction) }}
+                                </td>
+
+                                <td class="salary-value">
+                                    ₹{{ "%.2f"|format(record.leave_deduction) }}
+                                </td>
+
+                                <td class="salary-value">
+                                    ₹{{ "%.2f"|format(record.other_deductions) }}
+                                </td>
+
+                                <td class="salary-value net-salary">
+                                    ₹{{ "%.2f"|format(record.net_salary) }}
+                                </td>
+
+                                <td>
+                                    <span class="status-badge {% if record.status == 'Draft' %}status-draft{% elif record.status == 'Finalized' %}status-finalized{% elif record.status == 'Paid' %}status-paid{% endif %}">
+                                        {{ record.status }}
+                                    </span>
+
+                                    {% if record.status == 'Draft' %}
+                                        <form
+                                            class="status-form"
+                                            method="POST"
+                                            action="{{ url_for('update_payroll_status', payroll_id=record.id) }}"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="status"
+                                                value="Finalized"
+                                            >
+                                            <button type="submit">
+                                                Finalize
+                                            </button>
+                                        </form>
+
+                                    {% elif record.status == 'Finalized' %}
+                                        <form
+                                            class="status-form"
+                                            method="POST"
+                                            action="{{ url_for('update_payroll_status', payroll_id=record.id) }}"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="status"
+                                                value="Paid"
+                                            >
+                                            <button type="submit">
+                                                Mark as Paid
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No payroll records yet</h3>
+                <p>Generate your first monthly payroll using the form above.</p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+</body>
+</html>
